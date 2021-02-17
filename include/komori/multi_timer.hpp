@@ -94,20 +94,26 @@ namespace komori {
       std::unique_lock<std::recursive_mutex> lock(mutex_);
 
       while (!is_end_) {
-        auto next_tp = task_queue_.top().tp;
-        // sleep until next time point
-        cond_.wait_until(lock, next_tp, [&](void) {
-          auto now = detail::system_clock::now();
-          return is_end_
-            || (!task_queue_.empty() && next_tp <= now);
-        });
+        if (task_queue_.empty()) {
+          cond_.wait(lock, [&](void) {
+            return is_end_ || !task_queue_.empty();
+          });
+        } else {
+          auto next_tp = task_queue_.top().tp;
+          // sleep until next time point
+          cond_.wait_until(lock, next_tp, [&](void) {
+            auto now = detail::system_clock::now();
+            return is_end_
+              || (!task_queue_.empty() && next_tp <= now);
+          });
 
-        while (!is_end_ && !task_queue_.empty() &&
-            task_queue_.top().tp <= detail::system_clock::now()) {
-          auto task = std::move(task_queue_.top().task);
-          task_queue_.pop();
+          while (!is_end_ && !task_queue_.empty() &&
+              task_queue_.top().tp <= detail::system_clock::now()) {
+            auto task = std::move(task_queue_.top().task);
+            task_queue_.pop();
 
-          task();
+            task();
+          }
         }
       }
     }

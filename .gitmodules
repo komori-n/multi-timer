@@ -1,0 +1,3 @@
+[submodule "examples/unique-function"]
+	path = examples/unique-function
+	url = https://github.com/komori-n/unique-function

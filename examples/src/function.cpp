@@ -29,7 +29,5 @@ int main(void){
     std::this_thread::sleep_for(10ms);
   }
 
-  std::cout << "end" << std::endl;
-
   return EXIT_SUCCESS;
 }
